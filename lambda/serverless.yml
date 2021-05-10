@@ -1,0 +1,114 @@
+---
+service: cost-check
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  region: ap-northeast-1
+  stage: ${opt:stage, self:custom.defaultStage}
+  runtime: nodejs12.x
+  deploymentBucket:
+    name: ${self:service}-${self:provider.stage}-deploy
+    serverSideEncryption: AES256
+  logRetentionInDays: 30
+  timeout: 120
+  layerCfStack: ${self:service}-layer-${self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:BatchWriteItem
+      Resource:
+        - !Sub "${CheckResultTable.Arn}"
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+      Resource:
+        - !Sub "${ScreenshotBucket.Arn}/*"
+    - Effect: Allow
+      Action:
+        - ssm:Get*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+      Resource:
+        Fn::Join:
+          - ":"
+          - - arn:aws:ses
+            - Ref: AWS::Region
+            - Ref: AWS::AccountId
+            - identity/*
+
+plugins:
+  - serverless-prune-plugin
+  - serverless-deployment-bucket
+
+custom:
+  defaultStage: dev
+  prune:
+    automatic: true
+    number: 3
+  region:
+    dev: ap-northeast-1
+
+package:
+  exclude:
+    - .gitignore
+    - .git/**
+    - events/**
+    - serverless.yml
+
+functions:
+  CostCheck:
+    handler: app/interface/function/main.handler
+    name: ${self:service}-${self:provider.stage}
+    environment:
+      TABLE:
+        Ref: CheckResultTable
+      BUCKET:
+        Ref: ScreenshotBucket
+      PARAM_STORE_HIERARCHY:
+        /${self:service}/${self:provider.stage}
+      TO_ADDRESSES:
+        ${self:custom.toAddresses.${self:provider.stage}}
+      REGION:
+        ${self:custom.region.${self:provider.stage}}
+    layers:
+      - ${cf:${self:provider.layerCfStack}.ChromeLambdaLayerQualifiedArn}
+    events:
+      - schedule: cron(0 23 * * ? *)
+
+resources:
+  Resources:
+    CheckResultTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}
+        KeySchema:
+          - AttributeName: kind
+            KeyType: HASH
+          - AttributeName: date
+            KeyType: RANGE
+        AttributeDefinitions:
+          - AttributeName: kind
+            AttributeType: S
+          - AttributeName: date
+            AttributeType: S
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TimeToLiveSpecification:
+          AttributeName: expiration
+          Enabled: true
+
+    ScreenshotBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-${self:provider.stage}
+        LifecycleConfiguration:
+          Rules:
+            - Id: ScreenshotDeleteRule
+              Status: Enabled
+              ExpirationInDays: 7
+              Prefix: "screenshots/"

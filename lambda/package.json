@@ -1,0 +1,58 @@
+{
+  "name": "cost-check",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Mori Toru <mori.toru4@exc.epson.co.jp>",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "clean": "find app/ -type f -name '*.js' -o -type f -name '*.js.map' | grep -v node_modules | xargs rm -f",
+    "prebuild": "yarn run clean",
+    "build": "npx tsc",
+    "lint": "npx eslint --max-warnings 0 app/**/*.ts",
+    "test": "STAGE=local NODE_ENV=local jest",
+    "coverage": "STAGE=local NODE_ENV=local jest --collectCoverage --collectCoverageFrom=app/**/*.ts",
+    "preinvoke": "yarn build",
+    "invoke": "bash scripts/invoke.sh",
+    "predeploy": "yarn && yarn build",
+    "deploy": "npx sls -v deploy --stage ${STAGE}"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.64",
+    "@types/jest": "~26.0.15",
+    "@types/node": "14.14.6",
+    "@types/puppeteer-core": "^2.0.0",
+    "@types/request-promise": "^4.1.46",
+    "@types/request-promise-native": "^1.0.17",
+    "@typescript-eslint/eslint-plugin": "^4.6.0",
+    "@typescript-eslint/parser": "^4.6.0",
+    "aws-sdk": "^2.781.0",
+    "chrome-aws-lambda": "^5.3.1",
+    "eslint": "^7.12.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-config-standard-with-typescript": "^19.0.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.2",
+    "jest": "~26.6.1",
+    "prettier": "^2.1.2",
+    "serverless": "^2.9.0",
+    "serverless-deployment-bucket": "^1.2.0",
+    "serverless-prune-plugin": "^1.4.3",
+    "ts-jest": "^26.4.3",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "moment-timezone": "^0.5.31",
+    "puppeteer-core": "^5.4.1",
+    "reflect-metadata": "^0.1.13",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.8",
+    "tsyringe": "^3.4.0"
+  }
+}
+

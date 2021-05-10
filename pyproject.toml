@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "cost-check"
+version = "0.1.0"
+description = ""
+authors = ["Mori Toru <mori.toru4@exc.epson.co.jp>"]
+license = "UNLICENSED"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+awscli = "^1.18.168"
+awslogs = "^0.14.0"
+yq = "^2.11.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

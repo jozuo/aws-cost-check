@@ -1,0 +1,15 @@
+{
+  "name": "cost-check-layer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Mori Toru <mori.toru4@exc.epson.co.jp>",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "deploy": "bash scripts/build-chrome-aws-lambda.sh && npx sls -v deploy --stage ${STAGE}"
+  },
+  "devDependencies": {
+    "serverless": "^2.8.0",
+    "serverless-deployment-bucket": "^1.2.0"
+  }
+}

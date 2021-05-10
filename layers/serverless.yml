@@ -1,0 +1,32 @@
+---
+service: cost-check-layer
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  region: ap-northeast-1
+  stage: ${opt:stage, self:custom.defaultStage}
+  deploymentBucket:
+    name: ${self:service}-${self:provider.stage}-deploy
+    serverSideEncryption: AES256
+
+plugins:
+  - serverless-deployment-bucket
+
+custom:
+  defaultStage: dev
+
+package:
+  exclude:
+    - scripts/**
+    - serverless.yml
+
+layers:
+  chrome:
+    name: ${self:provider.stage}-chrome-layer
+    package:
+      artifact: dist/chrome-aws-lambda.zip
+    compatibleRuntimes:
+      - nodejs12.x
+    retain: true
+
